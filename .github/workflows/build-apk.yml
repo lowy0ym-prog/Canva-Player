@@ -1,5 +1,7 @@
 name: Build Canva Player APK
 
+# Triggers on every push (e.g. whenever you upload/replace CanvaPlayer.zip)
+# and can also be started by hand from the Actions tab.
 on:
   push:
     branches: [ "main", "master" ]
@@ -70,17 +72,25 @@ jobs:
         with:
           gradle-version: "8.7"
 
-      - name: Grant execute permission for gradlew (if present)
+      - name: Grant execute permission for gradlew (if usable)
         working-directory: ${{ steps.locate.outputs.project_dir }}
         run: |
-          if [ -f "./gradlew" ]; then chmod +x ./gradlew; fi
+          if [ -f "./gradlew" ] && [ -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+            chmod +x ./gradlew
+          fi
 
       - name: Build debug APK
         working-directory: ${{ steps.locate.outputs.project_dir }}
         run: |
-          if [ -f "./gradlew" ]; then
+          # Only use ./gradlew if its wrapper jar actually exists — a gradlew
+          # script with no gradle-wrapper.jar next to it always fails, so we
+          # fall back to the "gradle" binary that setup-gradle already put on
+          # PATH instead of letting that failure stop the build.
+          if [ -f "./gradlew" ] && [ -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
+            echo "Using ./gradlew"
             ./gradlew assembleDebug --stacktrace --no-daemon
           else
+            echo "gradle-wrapper.jar not found — using the gradle binary from setup-gradle instead"
             gradle assembleDebug --stacktrace --no-daemon
           fi
 
