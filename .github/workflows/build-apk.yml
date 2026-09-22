@@ -50,8 +50,20 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Accept Android SDK licenses & install required packages
+        shell: bash
+        run: |
+          set -e
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "Using SDK at: $SDK_ROOT"
+          SDKMANAGER=$(find "$SDK_ROOT" -type f -iname "sdkmanager" 2>/dev/null | head -n 1)
+          if [ -z "$SDKMANAGER" ]; then
+            echo "::error::Could not find sdkmanager under $SDK_ROOT"
+            exit 1
+          fi
+          echo "Using sdkmanager at: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
