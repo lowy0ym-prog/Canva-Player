@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yiddishe Family Budget • Jewish Household Planner</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#687386;--gold:#b8892e;--blue:#315b9a;--green:#237a5b;--red:#b84b4b;--line:#e3e8ef;--shadow:0 8px 28px #1c2b3d12}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#eef3fa,#fbfaf6);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{background:linear-gradient(135deg,#172d52,#315b9a);color:white;padding:24px 18px 20px;position:sticky;top:0;z-index:5;box-shadow:0 5px 22px #15274730}
+header .brand{max-width:1150px;margin:auto;display:flex;align-items:center;gap:14px}.star{font-size:30px;color:#f5d27a}.brand h1{font-size:22px;margin:0}.brand p{margin:3px 0 0;color:#dbe7fa;font-size:12px}
+nav{max-width:1150px;margin:15px auto 0;display:flex;gap:7px;overflow:auto;padding-bottom:2px}nav button{border:1px solid #ffffff35;background:#ffffff12;color:white;border-radius:20px;padding:8px 12px;white-space:nowrap}
+main{max-width:1150px;margin:22px auto;padding:0 14px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;box-shadow:var(--shadow)}.span12{grid-column:span 12}.span8{grid-column:span 8}.span6{grid-column:span 6}.span4{grid-column:span 4}.span3{grid-column:span 3}
+h2{margin:0 0 12px;font-size:18px}h3{margin:0 0 9px;font-size:15px}.muted{color:var(--muted);font-size:12px}.total{font-size:28px;font-weight:800}.gold{color:var(--gold)}.green{color:var(--green)}.red{color:var(--red)}
+label{display:block;font-size:12px;font-weight:700;margin:9px 0 5px;color:#435067}input,select,textarea{width:100%;border:1px solid #d7dee8;border-radius:10px;padding:10px 11px;font:inherit;background:#fff;color:var(--ink)}input:focus,select:focus,textarea:focus{outline:2px solid #315b9a25;border-color:#315b9a}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.items{display:grid;gap:8px}.item{display:grid;grid-template-columns:1fr 130px 36px;gap:7px;align-items:center}.item input{padding:8px}.btn{border:0;border-radius:10px;padding:10px 13px;font-weight:700;cursor:pointer;background:#315b9a;color:white}.btn.gold{background:#b8892e;color:white}.btn.light{background:#eef3fa;color:#29456d}.btn.danger{background:#f9eaea;color:#a33}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kpi{padding:13px;border-radius:14px;background:#f7f9fc;border:1px solid var(--line)}.kpi b{display:block;font-size:20px;margin-top:4px}
+.tabs section{display:none}.tabs section.active{display:block}.hide{display:none!important}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left}th{color:#55627a}
+.badge{display:inline-block;padding:4px 8px;border-radius:12px;background:#edf5f0;color:#237a5b;font-size:11px;font-weight:700}.holiday{background:linear-gradient(135deg,#fffaf0,#fff);border-left:4px solid var(--gold)}
+footer{max-width:1150px;margin:25px auto;padding:0 14px 40px;color:var(--muted);font-size:11px}
+@media(max-width:800px){.span8,.span6,.span4,.span3{grid-column:span 12}.kpis{grid-template-columns:1fr 1fr}.row,.row3{grid-template-columns:1fr}.item{grid-template-columns:1fr 105px 34px}header{position:static}}
+</style></head>
+<body>
+<header><div class="brand"><div class="star">✡</div><div><h1>Yiddishe Family Budget</h1><p>Jewish household • holiday • school • season planner</p></div></div>
+<nav><button onclick="show('dashboard')">Dashboard</button><button onclick="show('household')">Household</button><button onclick="show('monthly')">Monthly</button><button onclick="show('holidays')">Holidays</button><button onclick="show('school')">School & Camp</button><button onclick="show('community')">Community</button><button onclick="show('results')">All Results</button></nav></header>
+<main class="tabs">
+<section id="dashboard" class="active"><div class="grid">
+<div class="card span12"><h2>Family Budget Dashboard</h2><p class="muted">Enter your own numbers. The preset categories are a planning checklist, not a claim that every Hasidic family has the same expenses.</p>
+<div class="kpis"><div class="kpi">Monthly income<b id="kIncome">$0</b></div><div class="kpi">Monthly spending<b id="kSpend">$0</b></div><div class="kpi">Monthly balance<b id="kBalance">$0</b></div><div class="kpi">Annual planned<b id="kAnnual">$0</b></div></div></div>
+<div class="card span8"><h3>Quick start</h3><div class="row"><div><label>Household / family name</label><input data-key="family" placeholder="e.g. Family Budget 5787"></div><div><label>Budget year</label><input data-key="year" value="2026-2027"></div></div><div class="actions"><button class="btn" onclick="show('monthly')">Start monthly budget →</button><button class="btn gold" onclick="show('holidays')">Plan holidays →</button><button class="btn light" onclick="show('results')">View everything</button></div></div>
+<div class="card span4"><h3>Save automatically</h3><p class="muted">Your entries are saved in this browser with localStorage. Nothing is sent to a server by this HTML.</p><button class="btn light" onclick="exportJSON()">Backup JSON</button> <button class="btn light" onclick="importJSON()">Restore</button></div>
+</div></section>
+
+<section id="household"><div class="grid"><div class="card span12"><h2>Household Profile</h2><div class="row3">
+<div><label>Adults</label><input type="number" min="0" data-key="adults" value="2"></div><div><label>Children</label><input type="number" min="0" data-key="children" value="0"></div><div><label>Location</label><select data-key="location"><option>Brooklyn / NYC</option><option>Upstate New York</option><option>New Jersey</option><option>Other US</option></select></div></div>
+<div class="row3"><div><label>Housing type</label><select data-key="housing"><option>Rent</option><option>Mortgage</option><option>Other</option></select></div><div><label>Notes / family goals</label><input data-key="notes"></div><div><label>Monthly take-home income</label><input type="number" min="0" data-key="income" value="0"></div></div></div></div></section>
+
+<section id="monthly"><div class="grid"><div class="card span12"><h2>Monthly & Recurring Expenses</h2><div id="monthlyItems" class="items"></div><button class="btn light" onclick="addItem('monthlyItems')">＋ Add expense</button></div>
+<div class="card span6"><h3>Income sources</h3><div id="incomeItems" class="items"></div><button class="btn light" onclick="addItem('incomeItems','income')">＋ Add income</button></div>
+<div class="card span6"><h3>Debt & savings goals</h3><div id="debtItems" class="items"></div><button class="btn light" onclick="addItem('debtItems','debt')">＋ Add goal/debt</button></div></div></section>
+
+<section id="holidays"><div class="grid"><div class="card span12"><h2>Jewish Holiday Planner</h2><p class="muted">Use these as editable starter checklists. Add your actual minhag, family size, hosting plans and community expectations.</p><div id="holidayCards" class="grid"></div></div></div></section>
+
+<section id="school"><div class="grid"><div class="card span6"><h2>School / Yeshiva</h2><div id="schoolItems" class="items"></div><button class="btn light" onclick="addItem('schoolItems','school')">＋ Add child / school cost</button></div>
+<div class="card span6"><h2>Camp & Summer</h2><div id="campItems" class="items"></div><button class="btn light" onclick="addItem('campItems','camp')">＋ Add camp / travel / program</button></div>
+<div class="card span12"><h2>Seasonal clothing & household</h2><div id="seasonItems" class="items"></div><button class="btn light" onclick="addItem('seasonItems','season')">＋ Add seasonal cost</button></div></div></section>
+
+<section id="community"><div class="grid"><div class="card span6"><h2>Community / Mitzvah / Simcha</h2><div id="communityItems" class="items"></div><button class="btn light" onclick="addItem('communityItems','community')">＋ Add item</button></div>
+<div class="card span6"><h2>Ma'aser / Tzedakah</h2><label>Annual income used for calculation</label><input id="maaserBase" type="number" value="0"><label>Planning percentage</label><input id="maaserRate" type="number" value="10" step="0.1"><div class="total green" id="maaserTotal">$0</div><p class="muted">This is only a calculator. Actual halachic treatment of income, deductions and ma'aser should follow the family's rabbinic guidance.</p></div></div></section>
+
+<section id="results"><div class="grid"><div class="card span12"><h2>Complete Budget Results</h2><div class="kpis"><div class="kpi">Income<b id="rIncome">$0</b></div><div class="kpi">Recurring<b id="rRecurring">$0</b></div><div class="kpi">Holiday + seasonal<b id="rHoliday">$0</b></div><div class="kpi">Grand annual plan<b id="rAnnual">$0</b></div></div><div class="actions"><button class="btn" onclick="exportCSV()">Export CSV</button><button class="btn gold" onclick="window.print()">Print / Save PDF</button><button class="btn light" onclick="exportJSON()">Backup JSON</button></div></div>
+<div class="card span12"><h3>Line-by-line summary</h3><table><thead><tr><th>Area</th><th>Item</th><th>Amount</th><th>Annualized</th></tr></thead><tbody id="resultsBody"></tbody></table></div></div></section>
+</main>
+<footer>Built as a self-contained, offline-first planning tool. Research basis: OU Pesach budgeting guidance, Chabad holiday shopping/checklists and local 2026 Brooklyn/NY examples. Costs vary substantially by family, minhag, school, housing, hosting and community. Always use current local prices and your family's rabbinic guidance for halachic questions.</footer>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(Number(n)||0);
+let data=JSON.parse(localStorage.getItem('yiddishBudget')||'{}');
+const defaults={
+monthly:[['Rent/Mortgage',0],['Property tax / HOA',0],['Utilities',0],['Phone / Internet',0],['Groceries / Kosher food',0],['Household supplies',0],['Transportation / car',0],['Insurance',0],['Medical / dental',0],['Cleaning / household help',0],['Shul / membership',0],['Subscriptions / software',0],['Other recurring',0]],
+income:[['Salary / wages',0],['Business / self-employed',0],['Other income',0]],
+debt:[['Credit card / loan payment',0],['Emergency fund savings',0],['Other savings goal',0]],
+school:[['Child 1 — tuition',0],['Child 2 — tuition',0],['Child 3 — tuition',0],['Child 4 — tuition',0]],
+camp:[['Camp / day camp',0],['Camp transportation',0],['Summer program',0],['Vacation / family travel',0]],
+season:[['Back-to-school clothing/supplies',0],['Winter clothing',0],['Spring clothing',0],['Pesach clothing / household replacement',0]],
+community:[['Tzedakah / charity',0],['Maaser / community giving',0],['Simcha gifts / invitations',0],['Shul / community events',0],['Mikvah / ritual expenses',0],['Other community expenses',0]]
+};
+const holidays=[
+['Rosh Hashanah',['Special groceries & meals','Guests / hosting','Table / household items','New clothing','Shul / tickets / related fees','Travel / hospitality']],
+['Yom Kippur',['Meals before/after fast','Shul / related fees','Kittel / clothing','Childcare / other']],
+['Sukkot & Simchat Torah',['Sukkah / materials','Arba minim / lulav & etrog','Special groceries & meals','Guests / hosting','Decorations / disposable supplies','Travel / hospitality']],
+['Chanukah',['Oil / candles','Food / treats','Gifts','Parties / school events']],
+['Purim',['Mishloach manot','Matanot la’evyonim','Purim seudah','Costumes / clothing','Gifts / family events']],
+['Pesach',['Shmurah / machine matzah','Kosher-for-Pesach groceries','Meat / poultry / fish','Wine / grape juice','Seder supplies / Haggadahs','Disposable / paper goods','Pesach dishes / kitchen replacement','Cleaning supplies','Guests / hosting','Children’s clothing / shoes','Travel / hospitality']],
+['Shavuot',['Dairy / festive meals','Guests / hosting','All-night learning / food','Flowers / household']],
+['Tisha B’Av',['Meals before/after fast','Community / other']],
+['Other Yom Tov / family custom',['Special food','Clothing','Hosting','Travel','Other']]
+];
+function save(){localStorage.setItem('yiddishBudget',JSON.stringify(data));calc();}
+function bindInputs(){ $$('[data-key]').forEach(el=>{if(data[el.dataset.key]!==undefined)el.value=data[el.dataset.key];el.oninput=()=>{data[el.dataset.key]=el.value;save()};});}
+function list(container, type){const el=$(container);el.innerHTML='';let arr=data[type]||defaults[type].map(x=>({n:x[0],v:x[1]}));data[type]=arr;arr.forEach((x,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML='<input placeholder="Item" value="'+esc(x.n)+'"><input type="number" min="0" step="0.01" placeholder="$" value="'+(x.v||0)+'"><button class="btn danger">×</button>';const ins=d.querySelectorAll('input');ins[0].oninput=()=>{x.n=ins[0].value;save()};ins[1].oninput=()=>{x.v=Number(ins[1].value)||0;save()};d.querySelector('button').onclick=()=>{arr.splice(i,1);save();list(container,type)};el.appendChild(d)});}
+function esc(s){return String(s||'').replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;')}
+function addItem(container,type){type=type||container.replace('Items','');(data[type]??=[]).push({n:'',v:0});save();list('#'+container,type)}
+function show(id){$$('section').forEach(x=>x.classList.remove('active'));$('#'+id).classList.add('active');window.scrollTo({top:0,behavior:'smooth'});calc();}
+function renderHolidays(){const wrap=$('#holidayCards');wrap.innerHTML='';holidays.forEach((h,hi)=>{const card=document.createElement('div');card.className='card span4 holiday';let arr=data['hol'+hi]||h[1].map(n=>({n,v:0}));data['hol'+hi]=arr;card.innerHTML='<h3>'+h[0]+'</h3><div class="items"></div><button class="btn light">＋ Add</button>';const items=card.querySelector('.items');arr.forEach((x,i)=>{const d=document.createElement('div');d.className='item';d.innerHTML='<input value="'+esc(x.n)+'"><input type="number" value="'+(x.v||0)+'"><button class="btn danger">×</button>';const ins=d.querySelectorAll('input');ins[0].oninput=()=>{x.n=ins[0].value;save()};ins[1].oninput=()=>{x.v=Number(ins[1].value)||0;save()};d.querySelector('button').onclick=()=>{arr.splice(i,1);save();renderHolidays()};items.appendChild(d)});card.querySelector('.btn.light').onclick=()=>{arr.push({n:'',v:0});save();renderHolidays()};wrap.appendChild(card)});save();}
+function calc(){let income=Number(data.incomeBase||0);(data.income||[]).forEach(x=>income+=Number(x.v)||0);const monthly=(data.monthly||[]).reduce((a,x)=>a+(Number(x.v)||0),0);let annualOther=0;['school','camp','season','community'].forEach(t=>(data[t]||[]).forEach(x=>annualOther+=Number(x.v)||0));let hol=0;holidays.forEach((_,i)=>(data['hol'+i]||[]).forEach(x=>hol+=Number(x.v)||0));const recurringAnnual=monthly*12;const annual=recurringAnnual+annualOther+hol;const balance=income-monthly;['kIncome','rIncome'].forEach(id=>$( '#'+id).textContent=money(income));$('#kSpend').textContent=money(monthly);$('#kBalance').textContent=money(balance);$('#kAnnual').textContent=money(annual);$('#rRecurring').textContent=money(recurringAnnual);$('#rHoliday').textContent=money(hol+annualOther);$('#rAnnual').textContent=money(annual);const mb=Number($('#maaserBase')?.value||0),mr=Number($('#maaserRate')?.value||0);if($('#maaserTotal'))$('#maaserTotal').textContent=money(mb*mr/100);renderResults();}
+function rows(t,label,annualMult=1){(data[t]||[]).forEach(x=>rowsOut.push([label,x.n,Number(x.v)||0,(Number(x.v)||0)*annualMult]);)}
+let rowsOut=[];
+function renderResults(){rowsOut=[];rows('monthly','Monthly',12);rows('income','Income',12);rows('school','School / tuition');rows('camp','Camp / summer');rows('season','Seasonal');rows('community','Community');holidays.forEach((h,i)=>(data['hol'+i]||[]).forEach(x=>rowsOut.push([h[0],x.n,Number(x.v)||0,Number(x.v)||0])));const b=$('#resultsBody');if(!b)return;b.innerHTML=rowsOut.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td>'+money(r[2])+'</td><td>'+money(r[3])+'</td></tr>').join('');}
+function exportCSV(){const lines=[['Area','Item','Amount','Annualized'],...rowsOut];const csv=lines.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',')).join('\n');download('jewish-family-budget.csv',csv,'text/csv');}
+function exportJSON(){download('jewish-family-budget.json',JSON.stringify(data,null,2),'application/json');}
+function importJSON(){const i=document.createElement('input');i.type='file';i.accept='.json';i.onchange=()=>{const f=i.files[0],r=new FileReader();r.onload=()=>{data=JSON.parse(r.result);localStorage.setItem('yiddishBudget',JSON.stringify(data));location.reload()};r.readAsText(f)};i.click();}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('input,select,textarea')){e.preventDefault();const els=$$('input,select,textarea').filter(x=>x.offsetParent!==null);const i=els.indexOf(e.target);if(i>=0&&els[i+1])els[i+1].focus();}});
+$('#maaserBase').oninput=calc;$('#maaserRate').oninput=calc;
+Object.keys(defaults).forEach(t=>list('#'+t+'Items',t));renderHolidays();bindInputs();calc();
+</script></body></html>
