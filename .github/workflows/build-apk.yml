@@ -46,6 +46,105 @@ jobs:
           echo "Building from: $PROJECT_DIR"
           echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
 
+
+      - name: Apply Canva Player visual refresh and new launcher icon
+        working-directory: ${{ steps.locate.outputs.project_dir }}
+        shell: bash
+        run: |
+          set -e
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path(".").resolve()
+
+          # --- Modern launcher icon ---
+          res = root / "app" / "src" / "main" / "res"
+          (res / "drawable").mkdir(parents=True, exist_ok=True)
+          (res / "mipmap-anydpi-v26").mkdir(parents=True, exist_ok=True)
+          (res / "values").mkdir(parents=True, exist_ok=True)
+
+          bg = res / "drawable" / "ic_canva_player_bg.xml"
+          fg = res / "drawable" / "ic_canva_player_fg.xml"
+          mono = res / "drawable" / "ic_canva_player_mono.xml"
+          adaptive = res / "mipmap-anydpi-v26" / "ic_launcher.xml"
+
+          bg.write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#101828"/>
+          </shape>
+          ''')
+          fg.write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp" android:height="108dp"
+              android:viewportWidth="108" android:viewportHeight="108">
+              <path android:fillColor="#FFFFFF" android:pathData="M32,26 L76,26 L76,34 L52,34 L52,82 L43,82 L43,34 L32,34 Z"/>
+              <path android:fillColor="#6C63FF" android:pathData="M63,44 L76,44 L76,57 L63,57 Z"/>
+              <path android:fillColor="#8B5CF6" android:pathData="M63,62 L76,62 L76,75 L63,75 Z"/>
+          </vector>
+          ''')
+          mono.write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <vector xmlns:android="http://schemas.android.com/apk/res/android"
+              android:width="108dp" android:height="108dp"
+              android:viewportWidth="108" android:viewportHeight="108">
+              <path android:fillColor="#FFFFFF" android:pathData="M32,26 L76,26 L76,34 L52,34 L52,82 L43,82 L43,34 L32,34 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M63,44 L76,44 L76,57 L63,57 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M63,62 L76,62 L76,75 L63,75 Z"/>
+          </vector>
+          ''')
+          adaptive.write_text('''<?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@drawable/ic_canva_player_bg"/>
+              <foreground android:drawable="@drawable/ic_canva_player_fg"/>
+              <monochrome android:drawable="@drawable/ic_canva_player_mono"/>
+          </adaptive-icon>
+          ''')
+
+          legacy = res / "mipmap-mdpi"
+          legacy.mkdir(parents=True, exist_ok=True)
+
+          # Point every AndroidManifest application at the new adaptive icon.
+          for manifest in root.glob("**/AndroidManifest.xml"):
+              text = manifest.read_text(errors="ignore")
+              if "android:icon=" in text:
+                  text = re.sub(r'android:icon="[^"]+"', 'android:icon="@mipmap/ic_launcher"', text, count=1)
+              else:
+                  text = text.replace("<application", '<application android:icon="@mipmap/ic_launcher"', 1)
+              manifest.write_text(text)
+
+          # --- Modernize HTML/WebView screens without replacing app functionality ---
+          css = r"""
+          <style id="canva-player-modern-refresh">
+          :root{
+            --cp-bg:#f6f7fb;--cp-surface:rgba(255,255,255,.92);
+            --cp-text:#172033;--cp-muted:#667085;--cp-accent:#6c63ff;
+            --cp-border:rgba(16,24,40,.09);--cp-shadow:0 10px 30px rgba(16,24,40,.08);
+          }
+          @media(prefers-color-scheme:dark){
+            :root{--cp-bg:#0b1020;--cp-surface:rgba(20,27,45,.94);--cp-text:#f4f6fb;--cp-muted:#aab3c5;--cp-border:rgba(255,255,255,.10);--cp-shadow:0 12px 34px rgba(0,0,0,.28)}
+          }
+          html,body{background:var(--cp-bg)!important;color:var(--cp-text)!important}
+          body{font-family:Inter,Roboto,system-ui,-apple-system,sans-serif!important}
+          button,.btn,[role=button]{border-radius:14px!important;border:1px solid var(--cp-border)!important;
+            box-shadow:0 4px 14px rgba(16,24,40,.06);transition:transform .16s ease,box-shadow .16s ease}
+          button:active,.btn:active,[role=button]:active{transform:scale(.98)}
+          input,select,textarea{border-radius:12px!important;border:1px solid var(--cp-border)!important}
+          .card,.panel,.tile,.tool-card,.dashboard-card,.modal,.sheet{
+            border:1px solid var(--cp-border)!important;border-radius:20px!important;
+            background:var(--cp-surface)!important;box-shadow:var(--cp-shadow)!important}
+          header,.topbar,.app-header,.toolbar{backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
+          </style>
+          """
+          for html in root.glob("**/*.html"):
+              if "canva-player-modern-refresh" in html.read_text(errors="ignore"):
+                  continue
+              s = html.read_text(errors="ignore")
+              if re.search(r"</head>", s, re.I):
+                  s = re.sub(r"</head>", css + "</head>", s, count=1, flags=re.I)
+                  html.write_text(s)
+          print("Canva Player visual refresh applied.")
+          PY
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
