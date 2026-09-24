@@ -113,72 +113,57 @@ jobs:
               manifest.write_text(text)
 
           # --- Add a built-in Quick Tools panel to every HTML canvas ---
-          # These tools are local to the player and do not require an account or
-          # external service. They are deliberately non-destructive to the canvas.
-          const tools_css = r"""
+          tools_css = r"""
           <style id="canva-player-tools-css">
-          #cp-tools-fab{position:fixed;right:16px;bottom:18px;z-index:2147483647;width:54px;height:54px;
-            border:0!important;border-radius:18px!important;background:#101828!important;color:#fff!important;
-            font-size:22px!important;box-shadow:0 10px 28px rgba(0,0,0,.22)!important}
-          #cp-tools-panel{position:fixed;right:14px;bottom:82px;z-index:2147483647;width:min(310px,calc(100vw - 28px));
-            padding:14px;border-radius:22px;background:rgba(255,255,255,.97);color:#172033;
-            box-shadow:0 18px 50px rgba(0,0,0,.22);border:1px solid rgba(16,24,40,.10);
-            font-family:Inter,Roboto,system-ui,sans-serif;display:none}
-          #cp-tools-panel.cp-open{display:block}
-          #cp-tools-panel .cp-title{font-size:16px;font-weight:750;margin:2px 4px 12px}
+          #cp-tools-fab{position:fixed;right:16px;bottom:18px;z-index:2147483647;width:54px;height:54px;border:0!important;border-radius:18px!important;background:#101828!important;color:#fff!important;font-size:22px!important;box-shadow:0 10px 28px rgba(0,0,0,.22)!important}
+          #cp-tools-panel{position:fixed;right:14px;bottom:82px;z-index:2147483647;width:min(310px,calc(100vw - 28px));padding:14px;border-radius:22px;background:#fff;color:#172033;box-shadow:0 18px 50px rgba(0,0,0,.22);border:1px solid rgba(16,24,40,.10);font-family:Inter,Roboto,system-ui,sans-serif;display:none}
+          #cp-tools-panel.cp-open{display:block} #cp-tools-panel .cp-title{font-size:16px;font-weight:750;margin:2px 4px 12px}
           #cp-tools-panel .cp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-          #cp-tools-panel button{min-height:44px!important;padding:8px!important;background:#f7f8fc!important;color:#172033!important;
-            font-size:13px!important;font-weight:650!important;border:1px solid rgba(16,24,40,.09)!important}
+          #cp-tools-panel button{min-height:44px!important;padding:8px!important;background:#f7f8fc!important;color:#172033!important;font-size:13px!important;font-weight:650!important}
           #cp-tools-panel .cp-wide{grid-column:1/-1}
-          @media(prefers-color-scheme:dark){
-            #cp-tools-panel{background:rgba(20,27,45,.98);color:#f4f6fb}
-            #cp-tools-panel button{background:#293249!important;color:#f4f6fb!important}
-          }
-          body.cp-player-dark{background:#0b1020!important;color:#f4f6fb!important}
           </style>
           """
-          const tools_js = r"""
+          tools_js = r"""
           <script id="canva-player-tools-js">
-          (()=>{if(window.__CP_TOOLS__)return;window.__CP_TOOLS__=true;
-            const $=s=>document.querySelector(s);
-            const panel=document.createElement('div');panel.id='cp-tools-panel';
-            panel.innerHTML='<div class="cp-title">Canva Player Tools</div><div class="cp-grid">'+
-              '<button id="cp-reload">↻ Reload</button><button id="cp-full">⛶ Fullscreen</button>'+
-              '<button id="cp-zoomout">− Zoom</button><button id="cp-zoomin">＋ Zoom</button>'+
-              '<button id="cp-resetzoom">100% Zoom</button><button id="cp-theme">☾ Theme</button>'+
-              '<button id="cp-back">‹ Back</button><button id="cp-forward">› Forward</button>'+
-              '<button id="cp-share" class="cp-wide">↗ Share Canvas</button>'+
+          (function(){
+            if(window.__CP_TOOLS__) return; window.__CP_TOOLS__=true;
+            function add(){
+              if(!document.body || document.getElementById('cp-tools-fab')) return;
+              var panel=document.createElement('div'); panel.id='cp-tools-panel';
+              panel.innerHTML='<div class="cp-title">Canva Player Tools</div><div class="cp-grid">'+
+              '<button id="cp-reload">Reload</button><button id="cp-full">Fullscreen</button>'+
+              '<button id="cp-zoomout">Zoom −</button><button id="cp-zoomin">Zoom +</button>'+
+              '<button id="cp-resetzoom">100% Zoom</button><button id="cp-theme">Theme</button>'+
+              '<button id="cp-back">Back</button><button id="cp-forward">Forward</button>'+
+              '<button id="cp-share" class="cp-wide">Share Canvas</button>'+
               '<button id="cp-close" class="cp-wide">Close</button></div>';
-            const fab=document.createElement('button');fab.id='cp-tools-fab';fab.type='button';fab.textContent='✦';fab.title='Player tools';
-            document.body.append(panel,fab);
-            fab.onclick=()=>panel.classList.toggle('cp-open');
-            $('#cp-close').onclick=()=>panel.classList.remove('cp-open');
-            $('#cp-reload').onclick=()=>location.reload();
-            $('#cp-full').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){}};
-            let zoom=Number(localStorage.getItem('cpZoom')||1);
-            const applyZoom=()=>{document.documentElement.style.zoom=zoom;localStorage.setItem('cpZoom',zoom.toFixed(2))};
-            $('#cp-zoomin').onclick=()=>{zoom=Math.min(1.6,zoom+.1);applyZoom()};
-            $('#cp-zoomout').onclick=()=>{zoom=Math.max(.6,zoom-.1);applyZoom()};
-            $('#cp-resetzoom').onclick=()=>{zoom=1;applyZoom()};
-            applyZoom();
-            $('#cp-theme').onclick=()=>{document.body.classList.toggle('cp-player-dark');localStorage.setItem('cpDark',document.body.classList.contains('cp-player-dark')?'1':'0')};
-            if(localStorage.getItem('cpDark')==='1')document.body.classList.add('cp-player-dark');
-            $('#cp-back').onclick=()=>history.back();$('#cp-forward').onclick=()=>history.forward();
-            $('#cp-share').onclick=async()=>{try{if(navigator.share)await navigator.share({title:document.title||'Canva Player',url:location.href});else if(navigator.clipboard)await navigator.clipboard.writeText(location.href)}catch(e){}};
+              var fab=document.createElement('button'); fab.id='cp-tools-fab'; fab.type='button'; fab.textContent='✦';
+              document.body.appendChild(panel); document.body.appendChild(fab);
+              fab.onclick=function(){panel.classList.toggle('cp-open')};
+              document.getElementById('cp-close').onclick=function(){panel.classList.remove('cp-open')};
+              document.getElementById('cp-reload').onclick=function(){location.reload()};
+              document.getElementById('cp-full').onclick=function(){try{if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}catch(e){}};
+              var zoom=parseFloat(localStorage.getItem('cpZoom')||'1');
+              function apply(){document.documentElement.style.zoom=zoom;localStorage.setItem('cpZoom',String(zoom))}
+              document.getElementById('cp-zoomin').onclick=function(){zoom=Math.min(1.6,zoom+.1);apply()};
+              document.getElementById('cp-zoomout').onclick=function(){zoom=Math.max(.6,zoom-.1);apply()};
+              document.getElementById('cp-resetzoom').onclick=function(){zoom=1;apply()}; apply();
+              document.getElementById('cp-theme').onclick=function(){document.body.classList.toggle('cp-player-dark');localStorage.setItem('cpDark',document.body.classList.contains('cp-player-dark')?'1':'0')};
+              if(localStorage.getItem('cpDark')==='1')document.body.classList.add('cp-player-dark');
+              document.getElementById('cp-back').onclick=function(){history.back()}; document.getElementById('cp-forward').onclick=function(){history.forward()};
+              document.getElementById('cp-share').onclick=function(){try{if(navigator.share)navigator.share({title:document.title||'Canva Player',url:location.href});else if(navigator.clipboard)navigator.clipboard.writeText(location.href)}catch(e){}};
+            }
+            if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',add);else add();
           })();
           </script>
           """
-          # Inject the tools once into every HTML document.
           for html in root.glob("**/*.html"):
               s = html.read_text(errors="ignore")
-              if "canva-player-tools-js" in s:
-                  continue
-              if re.search(r"</body>", s, re.I):
-                  s = re.sub(r"</body>", tools_css + tools_js + "</body>", s, count=1, flags=re.I)
-              elif re.search(r"</html>", s, re.I):
-                  s = re.sub(r"</html>", tools_css + tools_js + "</html>", s, count=1, flags=re.I)
-              else:
-                  s += tools_css + tools_js
+              if "canva-player-tools-js" in s: continue
+              injection = tools_css + tools_js
+              if re.search(r"</body>", s, re.I): s = re.sub(r"</body>", injection + "</body>", s, count=1, flags=re.I)
+              elif re.search(r"</html>", s, re.I): s = re.sub(r"</html>", injection + "</html>", s, count=1, flags=re.I)
+              else: s += injection
               html.write_text(s)
 
           # --- Modernize HTML/WebView screens without replacing app functionality ---
