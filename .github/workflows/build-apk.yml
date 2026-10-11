@@ -69,27 +69,34 @@ jobs:
           mono = res / "drawable" / "ic_canva_player_mono.xml"
           adaptive = res / "mipmap-anydpi-v26" / "ic_launcher.xml"
 
+          # Keep a gradient launcher background rather than replacing it with a flat color.
+          # This gradient is used only as the adaptive icon background.
           bg.write_text('''<?xml version="1.0" encoding="utf-8"?>
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-              <solid android:color="#101828"/>
+              <gradient android:type="linear" android:angle="135" android:startColor="#6C63FF" android:centerColor="#8B5CF6" android:endColor="#EC4899"/>
           </shape>
           ''')
           fg.write_text('''<?xml version="1.0" encoding="utf-8"?>
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp" android:height="108dp"
               android:viewportWidth="108" android:viewportHeight="108">
-              <path android:fillColor="#FFFFFF" android:pathData="M32,26 L76,26 L76,34 L52,34 L52,82 L43,82 L43,34 L32,34 Z"/>
-              <path android:fillColor="#6C63FF" android:pathData="M63,44 L76,44 L76,57 L63,57 Z"/>
-              <path android:fillColor="#8B5CF6" android:pathData="M63,62 L76,62 L76,75 L63,75 Z"/>
+              <!-- Rear sheet -->
+              <path android:fillColor="#B7AEFF" android:pathData="M39,24 L70,24 Q74,24 74,28 L74,69 L69,74 L39,74 Q35,74 35,70 L35,28 Q35,24 39,24 Z"/>
+              <!-- Front sheet with a visible folded corner -->
+              <path android:fillColor="#FFFFFF" android:pathData="M30,33 Q30,29 34,29 L62,29 L78,45 L78,79 Q78,83 74,83 L34,83 Q30,83 30,79 Z"/>
+              <path android:fillColor="#DCD7FF" android:pathData="M62,29 L62,41 Q62,45 66,45 L78,45 Z"/>
+              <!-- Small tap dot; deliberately no play triangle -->
+              <path android:fillColor="#FDE68A" android:pathData="M79,64 A5,5 0 1,0 79,74 A5,5 0 1,0 79,64 Z"/>
           </vector>
           ''')
           mono.write_text('''<?xml version="1.0" encoding="utf-8"?>
           <vector xmlns:android="http://schemas.android.com/apk/res/android"
               android:width="108dp" android:height="108dp"
               android:viewportWidth="108" android:viewportHeight="108">
-              <path android:fillColor="#FFFFFF" android:pathData="M32,26 L76,26 L76,34 L52,34 L52,82 L43,82 L43,34 L32,34 Z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M63,44 L76,44 L76,57 L63,57 Z"/>
-              <path android:fillColor="#FFFFFF" android:pathData="M63,62 L76,62 L76,75 L63,75 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M39,24 L70,24 Q74,24 74,28 L74,69 L69,74 L39,74 Q35,74 35,70 L35,28 Q35,24 39,24 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M30,33 Q30,29 34,29 L62,29 L78,45 L78,79 Q78,83 74,83 L34,83 Q30,83 30,79 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M62,29 L62,41 Q62,45 66,45 L78,45 Z"/>
+              <path android:fillColor="#FFFFFF" android:pathData="M79,64 A5,5 0 1,0 79,74 A5,5 0 1,0 79,64 Z"/>
           </vector>
           ''')
           adaptive.write_text('''<?xml version="1.0" encoding="utf-8"?>
