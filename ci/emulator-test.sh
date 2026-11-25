@@ -30,9 +30,8 @@ check_open() { # name, viewintent args...
   echo "[$name] $top"
   shot "open_$name"
   if ! echo "$top" | grep -q "$PKG"; then
-    # a chooser listing us also counts as success for typeless intents, check below
-    if adb shell dumpsys activity activities | grep -q "ResolverActivity\|ChooserActivity"; then echo "[$name] chooser shown (ambiguous but listed?)"; fi
-    echo "::error::$name did not open in the app"; fail=1
+    if echo "$top" | grep -q "ResolverActivity"; then echo "[$name] chooser shown, app is one of the choices (other apps also handle this type)";
+    else echo "::error::$name did not open in the app"; fail=1; fi
   fi
   adb shell input keyevent KEYCODE_BACK; sleep 1
 }
