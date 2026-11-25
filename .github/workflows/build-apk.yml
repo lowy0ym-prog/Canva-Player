@@ -2,6 +2,9 @@ name: Build Canva Player APK
 
 # Triggers on every push (e.g. whenever you upload/replace CanvaPlayer.zip)
 # and can also be started by hand from the Actions tab.
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ "main", "master" ]
@@ -89,10 +92,10 @@ jobs:
           # PATH instead of letting that failure stop the build.
           if [ -f "./gradlew" ] && [ -f "./gradle/wrapper/gradle-wrapper.jar" ]; then
             echo "Using ./gradlew"
-            ./gradlew assembleDebug --stacktrace --no-daemon
+            ./gradlew assembleDebug -Pvc=${{ github.run_number }} -Pvn=2.0.${{ github.run_number }} --stacktrace --no-daemon
           else
             echo "gradle-wrapper.jar not found — using the gradle binary from setup-gradle instead"
-            gradle assembleDebug --stacktrace --no-daemon
+            gradle assembleDebug -Pvc=${{ github.run_number }} -Pvn=2.0.${{ github.run_number }} --stacktrace --no-daemon
           fi
 
       - name: Upload APK artifact
@@ -101,3 +104,70 @@ jobs:
           name: canva-player-debug-apk
           path: ${{ steps.locate.outputs.project_dir }}/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
+
+      - name: Keep a copy named for people
+        run: cp ${{ steps.locate.outputs.project_dir }}/app/build/outputs/apk/debug/*.apk Folio.apk
+
+      - name: Upload release copy
+        uses: actions/upload-artifact@v4
+        with:
+          name: folio-apk
+          path: Folio.apk
+          if-no-files-found: error
+
+      - name: Upload samples for the emulator test
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-files
+          path: |
+            ci
+            ci-samples
+
+  emulator-test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: folio-apk }
+      - uses: actions/download-artifact@v4
+        with: { name: ci-files }
+      - run: |
+          ls -R . | head -40
+          mv Folio.apk app.apk
+          # artifact download flattens ci/ and ci-samples/ paths; restore if needed
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run app in emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: bash ci/emulator-test.sh
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-screenshots
+          path: shots
+
+  release:
+    needs: [build, emulator-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: folio-apk }
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v2.0.${{ github.run_number }}"
+          gh release create "$TAG" Folio.apk --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "Folio $TAG" --latest \
+            --notes "Install Folio.apk on your phone. It updates over the previous version (same signing key). Passed the emulator test."
