@@ -61,7 +61,7 @@ check_open() { # name, viewintent args...
 # viewer: full-screen behaviour (controls shown, auto-hide, tap to bring back)
 adb shell am start -a android.intent.action.VIEW -d file:///sdcard/Download/github-git-cheat-sheet.md -t text/markdown >/dev/null
 sleep 2; shot v1_viewer_controls
-sleep 4; shot v2_viewer_auto_hidden
+sleep 4; python3 ci/ui.py text "GOT IT"; sleep 1; shot v2_viewer_auto_hidden
 adb shell input tap 540 1100; sleep 1; shot v3_viewer_tap_shows
 adb shell input tap 540 1100; sleep 1; shot v4_viewer_tap_hides
 adb shell input keyevent KEYCODE_BACK; sleep 1
