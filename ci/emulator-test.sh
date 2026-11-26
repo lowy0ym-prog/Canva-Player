@@ -21,6 +21,17 @@ adb shell dumpsys gfxinfo $PKG reset >/dev/null
 for i in 1 2 3 4 5 6; do adb shell input swipe 540 1800 540 600 250; adb shell input swipe 540 600 540 1800 250; done
 adb shell dumpsys gfxinfo $PKG | grep -E "Total frames|Janky frames|50th|90th|95th|99th" | tee $OUT/smoothness.txt
 shot 02b_after_scroll
+# same scroll again with every preview already cached (warm), then the phone's own Settings app as a yardstick
+adb shell dumpsys gfxinfo $PKG reset >/dev/null
+for i in 1 2 3 4 5 6; do adb shell input swipe 540 1800 540 600 250; adb shell input swipe 540 600 540 1800 250; done
+echo "--- Folio warm" | tee -a $OUT/smoothness.txt
+adb shell dumpsys gfxinfo $PKG | grep -E "Total frames|Janky frames:|50th percentile|90th percentile" | tee -a $OUT/smoothness.txt
+adb shell am start -a android.settings.SETTINGS >/dev/null; sleep 3
+adb shell dumpsys gfxinfo com.android.settings reset >/dev/null
+for i in 1 2 3 4 5 6; do adb shell input swipe 540 1800 540 600 250; adb shell input swipe 540 600 540 1800 250; done
+echo "--- Android Settings (yardstick)" | tee -a $OUT/smoothness.txt
+adb shell dumpsys gfxinfo com.android.settings | grep -E "Total frames|Janky frames:|50th percentile|90th percentile" | tee -a $OUT/smoothness.txt
+adb shell am start -n $PKG/.MainActivity; sleep 3; python3 ci/ui.py text "All"; sleep 3
 sleep 12; shot 03_all_thumbnails
 python3 ci/ui.py desc "More options" ; sleep 1; shot 04_overflow; adb shell input keyevent KEYCODE_BACK
 python3 ci/ui.py text "Favorites"; sleep 2; shot 05_favorites
