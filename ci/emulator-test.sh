@@ -8,12 +8,19 @@ adb install -r app.apk || exit 1
 adb shell mkdir -p /sdcard/Download /sdcard/Documents/Notes
 adb push ci-samples/. /sdcard/Download/
 adb shell cp /sdcard/Download/github-git-cheat-sheet.md /sdcard/Documents/Notes/
+mkdir -p bulk; for i in $(seq 1 90); do printf "# Note $i\n\nSome text for file $i.\n- one\n- two\n" > bulk/note-$i.md; printf "a,b,c\n$i,2,3\n" > bulk/table-$i.csv; done
+adb push bulk /sdcard/Documents/Bulk
 adb shell appops set $PKG MANAGE_EXTERNAL_STORAGE allow
 adb shell input keyevent KEYCODE_HOME
 adb logcat -c
 adb shell am start -n $PKG/.MainActivity; sleep 10
 shot 01_folders
 python3 ci/ui.py text "All"; sleep 10; shot 02_all_thumbnails_loading
+# smoothness: scroll the gallery grid back and forth and read the frame stats
+adb shell dumpsys gfxinfo $PKG reset >/dev/null
+for i in 1 2 3 4 5 6; do adb shell input swipe 540 1800 540 600 250; adb shell input swipe 540 600 540 1800 250; done
+adb shell dumpsys gfxinfo $PKG | grep -E "Total frames|Janky frames|50th|90th|95th|99th" | tee $OUT/smoothness.txt
+shot 02b_after_scroll
 sleep 12; shot 03_all_thumbnails
 python3 ci/ui.py desc "More options" ; sleep 1; shot 04_overflow; adb shell input keyevent KEYCODE_BACK
 python3 ci/ui.py text "Favorites"; sleep 2; shot 05_favorites
