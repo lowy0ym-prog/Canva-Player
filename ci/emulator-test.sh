@@ -114,6 +114,17 @@ adb shell input keyevent KEYCODE_HOME
 adb shell cmd uimode night yes; sleep 2
 adb shell am start -n $PKG/.MainActivity; sleep 5
 python3 ci/ui.py text "All"; sleep 6; shot 09_dark_all
+adb shell input swipe 540 1500 540 1000 2500 &
+sleep 1.4; shot 09b_dark_scrolling
+wait; sleep 1.5
+python3 ci/ui.py text "Folders"; sleep 2; shot 09c_dark_folders
+python3 ci/ui.py text "Favorites"; sleep 2; shot 09d_dark_favorites
+python3 ci/ui.py desc "Settings"; sleep 2; shot 09e_dark_settings
+adb shell input keyevent KEYCODE_BACK; sleep 1
+adb shell am start -a android.intent.action.VIEW -d file:///sdcard/Download/github-git-cheat-sheet.md -t text/markdown >/dev/null
+sleep 1; shot 09f_dark_viewer_controls
+sleep 4; python3 ci/ui.py text "GOT IT"; adb shell input tap 540 1100; sleep 1; shot 09g_dark_viewer_tap
+adb shell input keyevent KEYCODE_BACK; sleep 1
 adb shell cmd uimode night no
 
 if adb logcat -d | grep -A12 "FATAL EXCEPTION" | grep -q "$PKG"; then
