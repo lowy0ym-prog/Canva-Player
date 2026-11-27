@@ -33,6 +33,11 @@ echo "--- Android Settings (yardstick)" | tee -a $OUT/smoothness.txt
 adb shell dumpsys gfxinfo com.android.settings | grep -E "Total frames|Janky frames:|50th percentile|90th percentile" | tee -a $OUT/smoothness.txt
 adb shell am start -n $PKG/.MainActivity; sleep 3; python3 ci/ui.py text "All"; sleep 3
 sleep 12; shot 03_all_thumbnails
+# a short, slow scroll must already bring the scroll-to-top ball and hide the bottom bar
+adb shell input swipe 540 1500 540 1000 2500 &
+sleep 1.4; shot 03d_slow_scroll_ball
+wait; sleep 1.5
+adb shell input swipe 540 300 540 2000 150; sleep 1
 # scroll chrome: slow swipe, look in the middle of it (date at the top, scroll-to-top ball, bottom bar gone)
 adb shell input swipe 540 1900 540 100 8000 &
 sleep 4.2; shot 03a_while_scrolling
