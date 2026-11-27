@@ -42,7 +42,7 @@ adb shell input swipe 540 300 540 2000 150; sleep 1
 adb shell input swipe 540 1900 540 100 8000 &
 sleep 4.2; shot 03a_while_scrolling
 wait
-adb shell input tap 540 2126; sleep 1.2; shot 03b_after_ball_tap
+adb shell input tap 540 1921; sleep 1.2; shot 03b_after_ball_tap
 python3 ci/ui.py has "Today" || { echo "::error::scroll-to-top button did not return to the top"; fail=1; }
 sleep 2; shot 03c_settled_blur
 python3 ci/ui.py has "Folders" || { echo "::error::bottom bar did not come back after scrolling stopped"; fail=1; }
