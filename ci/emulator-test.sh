@@ -33,11 +33,18 @@ echo "--- Android Settings (yardstick)" | tee -a $OUT/smoothness.txt
 adb shell dumpsys gfxinfo com.android.settings | grep -E "Total frames|Janky frames:|50th percentile|90th percentile" | tee -a $OUT/smoothness.txt
 adb shell am start -n $PKG/.MainActivity; sleep 3; python3 ci/ui.py text "All"; sleep 3
 sleep 12; shot 03_all_thumbnails
-# scroll chrome: grab a frame in the middle of a slow swipe, then once it has settled
-adb shell input swipe 540 1800 540 200 2200 &
-sleep 1.1; shot 03a_while_scrolling; wait
-sleep 2; shot 03b_scroll_settled_blur
-adb shell input swipe 540 300 540 2000 150; adb shell input swipe 540 300 540 2000 150; sleep 1.5; shot 03c_back_at_top
+# scroll chrome: slow swipe, look in the middle of it (date at the top, scroll-to-top ball, bottom bar gone)
+adb shell input swipe 540 1900 540 100 5000 &
+sleep 3.6; shot 03a_while_scrolling
+BALL=$(python3 ci/ui.py hasdesc "Scroll to top"); echo "$BALL"
+echo "$BALL" | grep -q PRESENT || { echo "::error::scroll-to-top button did not appear while scrolling"; fail=1; }
+python3 ci/ui.py absent "Folders" || { echo "::error::bottom bar still visible while scrolling"; fail=1; }
+wait
+BX=$(echo "$BALL" | awk '{print $4}'); BY=$(echo "$BALL" | awk '{print $5}')
+if [ -n "$BX" ]; then adb shell input tap $BX $BY; sleep 1.2; shot 03b_after_ball_tap
+  python3 ci/ui.py has "Today" || { echo "::error::scroll-to-top button did not return to the top"; fail=1; }; fi
+sleep 2; shot 03c_settled_blur
+python3 ci/ui.py has "Folders" || { echo "::error::bottom bar did not come back after scrolling stopped"; fail=1; }
 python3 ci/ui.py desc "More options" ; sleep 1; shot 04_overflow; adb shell input keyevent KEYCODE_BACK
 python3 ci/ui.py text "Favorites"; sleep 2; shot 05_favorites
 python3 ci/ui.py text "Recent"; sleep 2; shot 06_recent
@@ -58,12 +65,34 @@ check_open() { # name, viewintent args...
   fi
   adb shell input keyevent KEYCODE_BACK; sleep 1
 }
-# viewer: full-screen behaviour (controls shown, auto-hide, tap to bring back)
+# viewer: full-screen behaviour and every button
+need() { python3 ci/ui.py "$@" || { echo "::error::viewer check failed: $*"; fail=1; }; }
 adb shell am start -a android.intent.action.VIEW -d file:///sdcard/Download/github-git-cheat-sheet.md -t text/markdown >/dev/null
 sleep 2; shot v1_viewer_controls
+need hasdesc "Information"
 sleep 4; python3 ci/ui.py text "GOT IT"; sleep 1; shot v2_viewer_auto_hidden
+need absentdesc "Information"
 adb shell input tap 540 1100; sleep 1; shot v3_viewer_tap_shows
-adb shell input tap 540 1100; sleep 1; shot v4_viewer_tap_hides
+need hasdesc "Information"
+# every button
+python3 ci/ui.py desc "Add to favorites"; sleep 1; shot v4_after_favorite
+python3 ci/ui.py desc "Information"; sleep 1; shot v5_info_dialog
+need has "OK"; python3 ci/ui.py text "OK"; sleep 1
+python3 ci/ui.py desc "Quick Tools"; sleep 1.5; shot v6_quick_tools
+adb shell input keyevent KEYCODE_BACK; sleep 1
+python3 ci/ui.py desc "Reload"; sleep 2; shot v7_after_reload
+need hasdesc "Information"
+# scrolling must hide the controls and never bring them back
+adb shell input swipe 540 1700 540 500 300; sleep 1; shot v8_scrolled_hidden
+need absentdesc "Information"
+adb shell input swipe 540 1700 540 500 300; sleep 1
+need absentdesc "Information"
+# touching the page to stop a fling is not a tap
+adb shell input swipe 540 1800 540 300 120; adb shell input tap 540 1000; sleep 1
+need absentdesc "Information"
+# a real tap brings them back
+sleep 1; adb shell input tap 540 1000; sleep 1; shot v9_tap_shows_again
+need hasdesc "Information"
 adb shell input keyevent KEYCODE_BACK; sleep 1
 check_open md_typeless   -d file:///sdcard/Download/github-git-cheat-sheet.md
 check_open md_textplain  -d file:///sdcard/Download/github-git-cheat-sheet.md -t text/plain

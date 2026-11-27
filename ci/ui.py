@@ -17,6 +17,13 @@ def tap(text=None, desc=None):
     p = find(text, desc)
     if not p: print("NOT FOUND", text or desc); return False
     sh("input","tap",str(p[0]),str(p[1])); print("tapped", text or desc, p); return True
+def present(text=None, desc=None): return find(text, desc) is not None
 if __name__=="__main__":
     k,v = sys.argv[1], sys.argv[2]
+    if k in ("has","hasdesc"):
+        pt = find(text=v) if k=="has" else find(desc=v)
+        print("PRESENT" if pt else "ABSENT", v, pt[0] if pt else "", pt[1] if pt else ""); sys.exit(0 if pt else 1)
+    if k in ("absent","absentdesc"):
+        ok = present(text=v) if k=="absent" else present(desc=v)
+        print("STILL THERE" if ok else "ABSENT", v); sys.exit(1 if ok else 0)
     sys.exit(0 if (tap(text=v) if k=="text" else tap(desc=v)) else 1)
