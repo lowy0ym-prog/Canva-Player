@@ -1,0 +1,21 @@
+Total frames rendered: 50
+Janky frames: 49 (98.00%)
+Janky frames (legacy): 50 (100.00%)
+50th percentile: 93ms
+90th percentile: 150ms
+95th percentile: 150ms
+99th percentile: 150ms
+50th gpu percentile: 4950ms
+90th gpu percentile: 4950ms
+95th gpu percentile: 4950ms
+99th gpu percentile: 4950ms
+--- Folio warm
+Total frames rendered: 55
+Janky frames: 54 (98.18%)
+50th percentile: 93ms
+90th percentile: 133ms
+--- Android Settings (yardstick)
+Total frames rendered: 136
+Janky frames: 83 (61.03%)
+50th percentile: 46ms
+90th percentile: 69ms
